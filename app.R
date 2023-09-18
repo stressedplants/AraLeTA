@@ -420,7 +420,16 @@ server <- function(input, output,session) {
       paste("pafway-csv-age", input$age[1], "-", input$age[2], "_time", input$time[1], "-", input$time[2], ".csv", sep = "")
     },
     content = function(file) {
-      write.csv(pafway_network(), file, row.names = FALSE)
+      
+      cat(paste("#Parameters:", 
+                "AGE:", input$age[1], "to", input$age[2],
+                "; TIME:", input$time[1], "to", input$time[2],
+                "; CELLS:", paste(input$cell, collapse=","),
+                "; SC_THRESH", input$scThreshold,
+                "; BULK_THRESH", input$bulkThreshold,
+                "; Columns:", collapse=","), file=file)
+      
+      write.table(pafway_network(), file, row.names = FALSE, append=T, sep=",")
     })
   
 }
