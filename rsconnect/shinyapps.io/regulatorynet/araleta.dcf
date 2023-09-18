@@ -5,8 +5,6 @@ account: regulatorynet
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 9493011
-bundleId: 7490434
+bundleId: 7698110
 url: https://regulatorynet.shinyapps.io/araleta/
 version: 1
-asMultiple: FALSE
-asStatic: FALSE

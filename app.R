@@ -41,7 +41,7 @@ mergeAnnot <-function(a) {
   idsT=which(a[,2] %in% rownames(geneAnnot))
   a[idsS,c(3, 5)]=geneAnnot[a[idsS,1],]
   a[idsT,c(4, 6)]=geneAnnot[a[idsT,2],]
-  a=rbind(colnames(a), a)
+  #a=rbind(colnames(a), a)
   a
 }
 
@@ -343,7 +343,7 @@ server <- function(input, output,session) {
                 "; CELLS:", paste(input$cell, collapse=","),
                 "; SC_THRESH", input$scThreshold,
                 "; BULK_THRESH", input$bulkThreshold,
-                "; Columns:", collapse=","), file=file)
+                "; \n", collapse=","), file=file)
       write.table(mergeAnnot(a), file, row.names = FALSE, append=T, sep=",")
       
     })
@@ -427,7 +427,7 @@ server <- function(input, output,session) {
                 "; CELLS:", paste(input$cell, collapse=","),
                 "; SC_THRESH", input$scThreshold,
                 "; BULK_THRESH", input$bulkThreshold,
-                "; Columns:", collapse=","), file=file)
+                "; \n", collapse=","), file=file)
       
       write.table(pafway_network(), file, row.names = FALSE, append=T, sep=",")
     })
