@@ -41,6 +41,7 @@ mergeAnnot <-function(a) {
   idsT=which(a[,2] %in% rownames(geneAnnot))
   a[idsS,c(3, 5)]=geneAnnot[a[idsS,1],]
   a[idsT,c(4, 6)]=geneAnnot[a[idsT,2],]
+  a=rbind(colnames(a), a)
   a
 }
 
@@ -184,6 +185,10 @@ ui <- fluidPage(
 server <- function(input, output,session) {
 
 
+ # cell<- reactive({
+ #   input$cell
+ # }) %>% debounce(1000)
+  
   filter_network <- reactive({
     
     if(input$bulkThreshold==0){
@@ -213,21 +218,36 @@ server <- function(input, output,session) {
     
     #filter by cell type
     if(input$scThreshold!=0){
-      if(length(input$cell)>0){
+      
+      
+      
+      if(length(input$cell)>1){
+      
+      #if(length(cell)>0){
       cellsToInclude=scRNA[,input$cell]
       maxExpInRange=apply(cellsToInclude, 1, max)
       genesInRange=names(which(maxExpInRange>input$scThreshold))
       edgesToInclude3=which( (dapSeq[,1] %in% genesInRange) & (dapSeq[,2] %in% genesInRange) )
      
-      }else{edgesToInclude3=c()}
+      }else{
+        
+        if(length(input$cell)==1){
+         
+          maxExpInRange=scRNA[,input$cell]
+       
+          genesInRange=names(which(maxExpInRange>input$scThreshold))
+         
+          edgesToInclude3=which( (dapSeq[,1] %in% genesInRange) & (dapSeq[,2] %in% genesInRange) )
+        }else{
+        
+        edgesToInclude3=c()}}
     }else{
-      
-      edgesToInclude3=edgesToInclude2}
-    
+      edgesToInclude3=edgesToInclude2
+    }
     edgesToInclude=edgesToInclude1[which( (edgesToInclude1 %in% edgesToInclude2) & (edgesToInclude1 %in% edgesToInclude3))]
     currentDAPseq=dapSeq[edgesToInclude,]
     dapSeq[edgesToInclude,]
-  })
+  }) %>% debounce(1000)
   
   
   output$outdata <- renderDT({
@@ -293,7 +313,15 @@ server <- function(input, output,session) {
   output$heatmapAnnotCellTypes <- renderPlot({
     temp=mainHeatmap()
     temp=temp[which(rownames(temp) %in% rownames(scRNA)),]
+    
+    if(length(input$cell)==1){
+      annotRow=matrix(scRNA[rownames(temp), input$cell], byrow=T)
+    }else{
+    
     annotRow=scRNA[rownames(temp), input$cell]
+    }
+    
+    #annotRow=scRNA[rownames(temp), cell]
     annotRow=apply(annotRow, 1, function(i){
       if((max(i)-mean(i))<0.001){0}else{
       (i-min(i))/(max(i)-min(i))}})
@@ -307,7 +335,17 @@ server <- function(input, output,session) {
     },
     content = function(file) {
       a=filter_network()
-      write.csv(mergeAnnot(a), file, row.names = FALSE)
+     
+      
+      cat(paste("#Parameters:", 
+                "AGE:", input$age[1], "to", input$age[2],
+                "; TIME:", input$time[1], "to", input$time[2],
+                "; CELLS:", paste(input$cell, collapse=","),
+                "; SC_THRESH", input$scThreshold,
+                "; BULK_THRESH", input$bulkThreshold,
+                "; Columns:", collapse=","), file=file)
+      write.table(mergeAnnot(a), file, row.names = FALSE, append=T, sep=",")
+      
     })
   
   output$igraphplot <- renderPlot({
